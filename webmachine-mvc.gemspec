@@ -20,21 +20,21 @@ along with webmachine-mvc. If not, see <http://www.gnu.org/licenses/>.
 require 'rake'
 
 Gem::Specification.new do |spec|
-	spec.name					=	'webmachine-mvc'
-	spec.version			=	'0.0.1'
-	spec.date					= Time.now.strftime('%Y-%m-%d')
-	spec.summary			= 'MVC for Webmachine'
-	spec.description	=	'MVC for Webmachine'
-	spec.author				=	'Lars Olsson'
-	spec.email				= 'lasso@lassoweb.se'
-	spec.files				= ::Rake::FileList['lib/**/*'] <<
+  spec.name         = 'webmachine-mvc'
+  spec.version      = '0.0.1'
+  spec.date         = Time.now.strftime('%Y-%m-%d')
+  spec.summary      = 'MVC for Webmachine'
+  spec.description  = 'MVC for Webmachine'
+  spec.author       = 'Lars Olsson'
+  spec.email        = 'lasso@lassoweb.se'
+  spec.files        = ::Rake::FileList['lib/**/*'] <<
                         'COPYING' << 'LICENCE.md' << 'Rakefile' << 'README.md'
 
   spec.test_files   = ::Rake::FileList['spec/**/*']
 
-	spec.homepage			= 'http://www.lassoweb.se/ruby/webmachine-mvc'
+  spec.homepage     = 'http://www.lassoweb.se/ruby/webmachine-mvc'
 
-  spec.license      = 'GNU GPL (version 3 or later)'
+  spec.license      = 'GNU General Public Licence, version 3 (or later)'
 
   # Dependencies
   spec.add_dependency('webmachine', '>= 1.1.0')

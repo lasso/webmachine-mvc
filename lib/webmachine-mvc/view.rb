@@ -29,10 +29,12 @@ module Webmachine
       # @param [String] template
       # @param [Object] data
       # @param [Symbol] engine_class
-      def initialize(template, data = Object.new, engine_class = nil)
+      # @param [Hash] options
+      def initialize(template, data = Object.new, engine_class = nil, options = {})
         @template = template
         @data = data
         @engine_class = engine_class
+        @options = options
       end
 
       # Renders the view and returns the resulting string.
@@ -40,19 +42,20 @@ module Webmachine
       # @return [String]
       def render()
         unless @engine_class.nil?
-          renderer = @engine_class.new(@template)
+          renderer = @engine_class.new(@template, @options)
         else
-          renderer = Tilt.new(@template)
+          renderer = Tilt.new(@template, @options)
         end
         renderer.render(@data)
       end
 
       # Helper method for creating a view tied to a controller action.
       #
-      # @param [Symbol] engine
       # @param [Webmachine::MVC::Controller] controller
       # @param [Symbol] method
-      def self.create_view(engine, controller, method)
+      # @param [Symbol] engine
+      # @param [Hash] options
+      def self.create_view(controller, method, engine, options = {})
         engine = engine.to_s.downcase
         unless Tilt.mappings.has_key?(engine)
           raise RuntimeError.new('No such engine')
@@ -64,7 +67,7 @@ module Webmachine
             controller.class.mapping,
             "#{method}.#{engine}"
           )
-        self.new(template, controller, engine_class)
+        self.new(template, controller, engine_class, options)
       end
 
     end

@@ -76,6 +76,17 @@ module Webmachine
       self._configuration.mappings_by_path()
     end
 
+    # Preloads a list of template libraries. This is strictly not necessary,
+    # but Tilt will raise a warning whenever template libraries are loaded
+    # dynamically in a threaded environment. Use this method to avoid raising
+    # such warnings.
+    #
+    # @param [Symbol|Enumerable] libs
+    # @return nil
+    def self.preload_template_libraries(libs)
+      self._configuration.preload_template_libraries(libs)
+    end
+
     # Initializes the Webmachine::MVC framework.
     #
     # @return [nil]
@@ -106,6 +117,10 @@ module Webmachine
 
     def self._configuration
       @configuration = Class.new do
+        @@template_library_loaders =
+          {
+            :haml => lambda { require 'haml' }
+          }
 
         define_method(:initialize) do
           @data =
@@ -113,12 +128,13 @@ module Webmachine
               'Data',
               :controller_directory, :view_directory,
               :mappings_by_controller, :mappings_by_path,
-              :setup_done
+              :preloaded_template_libraries, :setup_done
             ).new
           @data.controller_directory = File.expand_path('controllers')
           @data.view_directory = File.expand_path('views')
           @data.mappings_by_controller = {}
           @data.mappings_by_path = {}
+          @data.preloaded_template_libraries = []
           @data.setup_done = false
         end
 
@@ -160,6 +176,24 @@ module Webmachine
 
         define_method(:mappings_by_path) do
           @data.mappings_by_path
+        end
+
+        define_method(:preload_template_libraries) do |libs|
+          raise RuntimeError.new(
+            'Cannot preload template libraries after setup'
+          ) if @data.setup_done
+          if libs.respond_to?(:each)
+            libs.each do |lib|
+              if @@template_library_loaders.has_key?(lib)
+                @@template_library_loaders[lib].call
+              end
+            end
+          else
+            if @@template_library_loaders.has_key?(libs)
+              @@template_library_loaders[libs].call
+            end
+          end
+          nil
         end
 
         define_method(:setup) do
@@ -211,8 +245,14 @@ module Webmachine
 
         define_method(:setup_views) do
           # TODO: Don't load views unless any controller uses them
-          require 'tilt'
-          require File.join(File.dirname(__FILE__), 'webmachine-mvc/view.rb')
+          uses_templates =
+            self.mappings_by_controller.keys.any? do |controller_class|
+              controller_class.uses_templates
+            end
+          if uses_templates
+            require 'tilt'
+            require File.join(File.dirname(__FILE__), 'webmachine-mvc/view.rb')
+          end
           nil
         end
 

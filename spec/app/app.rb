@@ -26,6 +26,8 @@ Webmachine.application.configure do |config|
   config.port = 8000
 end
 
+Webmachine::MVC.preload_template_libraries(:haml)
+
 # Set up Webmachine::MVC
 Webmachine::MVC.setup()
 

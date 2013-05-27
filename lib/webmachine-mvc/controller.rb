@@ -36,9 +36,12 @@ module Webmachine
             define_method(:to_html) do
               instance = child.new
               result = instance.send(meth)
-              engine = child.template_engine.call
+              engine, options = child.template_engine.call(meth)
               unless engine.nil?
-                Webmachine::MVC::View.create_view(engine, instance, meth).render()
+                options ||= {} # If no options are given, just use an empty hash
+                Webmachine::MVC::View.create_view(
+                  instance, meth, engine, options
+                ).render()
               else
                 result
               end
@@ -89,7 +92,7 @@ module Webmachine
       #
       # @return [Proc]
       def self.template_engine()
-        @@template_engine ||= lambda { nil }
+        @@template_engine ||= lambda { |meth| nil }
       end
 
       # Sets the templating engine used by the current controller. If a
@@ -99,13 +102,21 @@ module Webmachine
       #
       # @param [Symbol] name
       # @return [nil]
-      def self.use_template_engine(name = nil)
+      def self.use_template_engine(name = nil, &block)
+        @@uses_templates = true
         if block_given?
-          @@template_engine = lambda { |meth| yield meth }
+          @@template_engine = block
         else
-          @@template_engine = lambda { name }
+          @@template_engine = lambda { |meth| name }
         end
         nil
+      end
+
+      # Returns whether the current controller class uses templates or not.
+      #
+      # @return [true|false]
+      def self.uses_templates
+        @@uses_templates ||= false
       end
 
       private

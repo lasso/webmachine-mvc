@@ -21,8 +21,23 @@ class MainController < Webmachine::MVC::Controller
 
   map '/'
 
+  use_template_engine do |meth|
+    case meth
+    when :index
+      nil
+    when :t
+      :haml
+    else
+      nil
+    end
+  end
+
   def index()
     'Welcome to Webmachine!'
+  end
+
+  def t()
+    @content = 'Hello from template!'
   end
 
 end
